@@ -1,0 +1,273 @@
+---
+title: "REvenT workflow (ITA)"
+author: "F.M. Stefanini"
+date: "`r Sys.Date()` - rel 1.5.7"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{REvenT workflow (ITA)}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+# Introduzione
+
+Lo scopo di questa vignetta è di illustrare il funzioamento del pacchetto
+REvenT, una suite per elaborare calcoli probabilistici con grafi di eventi.
+
+**NOTA**: il package è in via di sviluppo. Potrebbe contenere bugs. La fase di testing è ancora in corso.
+
+
+# Una sessione di lavoro
+
+Si consideri la seguente partizione di uno spazio campionario:
+```{r}
+library(REvenT)
+testPart2 <- list(Pa1= c("sano","malato","morto"),
+                  Pa2= c("cicatrix","normal"),
+                  Pa3=c("giovane","adulto","vecchio"))
+testPart2
+```
+in cui *Pa* indica, appunto, una partizione.
+
+Il primo passo è creare un dataframe con tutti i percorsi dell'albero:
+```{r}
+primaColPat <- REvenT::eve_tree(testPart2)
+primaColPat
+```
+e si noti la tipologia dell'oggetto:
+```{r}
+attr(primaColPat,"Tipologia")
+```
+
+Ora è possibile creare la matrice che contiene le probabilità condizionate:
+```{r}
+primoPTree<- proba_tree(primaColPat)
+primoPTree
+```
+in cui ogni riga di eventi corrisponde ad una riga di probabilità condizionate.
+
+
+Ora non rimane che settare la matrice delle probabilità condizionate.
+Questo compito è reso possibile da una funzione che
+prende argomento una stringa-evento e un valore di probabilità.
+
+Un primo modo di operare impiega una stringa 
+ composta dalla sequenza 
+"Pa\<i\>:\<evento\>;" in cui i termini tra parentesi angolate devono essere
+sostituiti come nell'esempio sotto riportato.
+In "Pa\<i\>" si inseriscono i numeri interi progressivi 
+che indicano la partizione, quindi:
+```{r}
+test1 <-'Pa1:malato;Pa2:normal'
+tmp7 <-assignPro(primoPTree,test1,0.23)
+tmp7$proba_tree
+```
+in cui è chiaro che tutti i path interessati vengono settati
+come atteso.
+
+
+Un secondo modo inteso a facilitare il riempimento della matrice delle probabilità condizionate
+impiega una funzione helper.
+Essa enumera tutte le probabilità da assegnare
+che in seguito possono essere elicitate ed inserite
+senza ripetizioni:
+```{r}
+tmpGen <- genProbLs(primoPTree)
+tmpGen
+```
+per convenienza i percorsi e gli eventi vengono indicati con
+riferimento alla partizione in cui l'evento corrente
+è assegnato.
+
+Ad esempio, si considerino le assegnazioni seguenti:
+```{r}
+tmpGen$event[1:3]
+tmpGen$probVal[1:3] <- c(0.1, 0.7, 0.2)
+tmpGen[1:3,]
+```
+
+
+Naturalmente è necessario controllare
+che l'assegnazione sia coerente con il calcolo
+delle probabilità (probabilità dell'evento certo condizionato
+pari a 1):
+```{r}
+sum(tmpGen[1:3,4])
+```
+
+Procedendo con le assegnazioni:
+```{r}
+tmpGen$probVal[c(4,7)] <- c(0.1, 0.9)
+tmpGen[c(4,7),-1]
+
+tmpGen$probVal[c(5,8)] <- c(0.3, 0.7)
+tmpGen[c(5,8),-1]
+
+tmpGen$probVal[c(6,9)] <- c(0.95, 0.05)
+tmpGen[c(6,9),-1]
+
+tmpGen$probVal[c(10,16,22)] <- c(1,5,10)/16
+tmpGen[c(10,16,22),-1]
+
+tmpGen$probVal[c(10,16,22)+1] <- c(5,5,5)/15
+tmpGen[c(10,16,22)+1,-1]
+
+tmpGen$probVal[c(10,16,22)+2] <- c(25,5,15)/45
+tmpGen[c(10,16,22)+2,-1]
+
+tmpGen$probVal[c(10,16,22)+3] <- c(50,5,25)/80
+tmpGen[c(10,16,22)+3,-1]
+
+tmpGen$probVal[c(10,16,22)+4] <- c(25,5,25)/55
+tmpGen[c(10,16,22)+4,-1]
+
+tmpGen$probVal[c(10,16,22)+5] <- c(1,5,10)/16
+tmpGen[c(10,16,22)+5,-1]
+```
+
+Per controllare il contenuto della matrice delle probabilità
+condizionate:
+```{r}
+tmpGen[,-1]
+```
+
+
+Ora si può procedere al caricamento automatico
+dei valori nella matrice
+di probabilità condizionate:
+```{r}
+for(aux in 1:nrow(tmpGen)){
+    primoPTree <-assignPro(primoPTree,tmpGen$path[aux],
+                           tmpGen$probVal[aux])
+    }
+primoPTree$proba_tree
+```
+
+
+
+
+
+# Il calcolo delle probabilità
+
+
+Il primo passo da eseguire riguarda l'ottenimento della probabilità
+per la congiunzione degli eventi in ogni path (percorso):
+```{r}
+tavolaCongiunta <- congiungi(primoPTree)
+tavolaCongiunta
+```
+e come prova l'evento certo deve avere probabilità unitaria:
+```{r}
+sum(tavolaCongiunta$jointPro)
+```
+
+ 
+A questo punto è possibile marginalizzare rispetto ad eventi
+di una certa partizione, ad esempio:
+```{r}
+mymargin1 <- marginalizza(tavolaCongiunta,"Pa2:cicatrix;Pa3:adulto")
+mymargin1
+```
+oppure anche:
+```{r}
+marginalizza(tavolaCongiunta,"Pa2:cicatrix")
+marginalizza(tavolaCongiunta,"Pa1:morto;Pa3:vecchio")
+```
+
+
+Infine, è possibile calcolare la probabilità condizionata
+che corrisponde all'uso della regola di Bayes:
+```{r}
+estraSottotavola(tavolaCongiunta,"Pa2:cicatrix;Pa3:adulto")
+```
+quindi la condizionata vale:
+```{r}
+myCondizio <-estraSottotavola(tavolaCongiunta,
+                              "Pa2:cicatrix;Pa3:adulto")
+myCondizio$jointPro <- myCondizio$jointPro / mymargin1$probaMargin
+cbind(
+      myCondizio[,1:4],
+      condizionata= myCondizio$jointPro/ mymargin1$probaMargin
+)
+```
+
+
+
+
+##  Una funzione generale
+
+
+Risulta particolarmente utile avere una funzione che effettua
+i calcoli del condizionamento in maniera automatica a partire
+dalla scrittura probabilistica, quindi di una stringa di caratteri.
+
+Si deve notare che l'estrattore non è sensibile all'ordine
+dei condizionanti:
+```{r}
+estraSottotavola(tavolaCongiunta,"Pa3:adulto;Pa1:sano;Pa2:normal")
+estraSottotavola(tavolaCongiunta,"Pa2:normal;Pa3:adulto;Pa1:sano")
+```
+
+
+La funzione *condiziona* effettua tutto il lavoro di calcolo:
+```{r}
+tetCondiz <- condiziona(tavolaCongiunta,
+   "Pa1:sano  | Pa3:vecchio; Pa2:cicatrix")
+tetCondiz
+```
+e per avere tutta la distribuzione condizionata:
+```{r}
+condiziona(tavolaCongiunta, "   | Pa3:vecchio; Pa2:cicatrix")
+```
+che somma a uno.
+
+
+Anche condizionamenti più semplici funzionano:
+```{r}
+condiziona(tavolaCongiunta, "   | Pa2:cicatrix")
+sum(condiziona(tavolaCongiunta, "   | Pa2:cicatrix")$condPro)
+```
+e la marginale dopo condizionamento:
+```{r}
+condiziona(tavolaCongiunta, "    | Pa3:adulto")
+condiziona(tavolaCongiunta, " Pa2:normal   | Pa3:adulto")
+```
+
+Se poi gli eventi della terza partizione non sono osservati:
+```{r}
+test7 <-condiziona(tavolaCongiunta, " Pa1:sano   | Pa2:normal")
+test7
+```
+che tutavia richiede un'ulteriore marginalizzazione:
+```{r}
+marginalizza(test7,"Pa1:sano;Pa2:normal")$tavolaMarginale
+```
+
+
+
+
+# Rappresentazioni grafiche
+
+In questa release non sono previste, ma 
+sfruttando  packages quali **igrap** è possibile
+ottenerli.
+
+In una futura release sarebbe interessante
+una rappresentazione dell'albero sottoforma di 
+linee testuali nella console, come avviene nel pacchetto
+**data.tree**.
+
+Si deve rammentare che uno dei requisiti del
+package **REvenT** è di non dipendere da librerie aggiuntive.
+
+
+
+
+
+<!-- {r, fig.show='hold'}
+plot(1:10)
+plot(10:1)
+-->
+
+

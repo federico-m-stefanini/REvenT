@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Federico M. Stefanini" />
+
+
+<title>REvenT workflow (ENG)</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+<script>// Hide empty <a> tag within highlighted CodeBlock for screen reader accessibility (see https://github.com/jgm/pandoc/issues/6352#issuecomment-626106786) -->
+// v0.0.1
+// Written by JooYoung Seo (jooyoung@psu.edu) and Atsushi Yasumoto on June 1st, 2020.
+
+document.addEventListener('DOMContentLoaded', function() {
+  const codeList = document.getElementsByClassName("sourceCode");
+  for (var i = 0; i < codeList.length; i++) {
+    var linkList = codeList[i].getElementsByTagName('a');
+    for (var j = 0; j < linkList.length; j++) {
+      if (linkList[j].innerHTML === "") {
+        linkList[j].setAttribute('aria-hidden', 'true');
+      }
+    }
+  }
+});
+</script>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">REvenT workflow (ENG)</h1>
+<h4 class="author">Federico M. Stefanini</h4>
+<h4 class="date">August 2020 - rel 1.5.7</h4>
+
+
+
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>This document elaborates an example on how to work with package <em>REvenT</em>, a suite of functions to make probability calculus using trees of events.</p>
+<p><strong>NOTE</strong>: this package has not been released on CRAN. It might contain functions that will not be released in the final version of this package. Extensive testing is in progress.</p>
+</div>
+<div id="a-simple-case-study" class="section level1">
+<h1>A Simple case study</h1>
+<p>Below, three partitions of a sample space are considered:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">library</span>(REvenT)</span>
+<span id="cb1-2"><a href="#cb1-2"></a>testPart2 &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">Pa1=</span> <span class="kw">c</span>(<span class="st">&quot;sane&quot;</span>,<span class="st">&quot;sick&quot;</span>,<span class="st">&quot;dead&quot;</span>),</span>
+<span id="cb1-3"><a href="#cb1-3"></a>                  <span class="dt">Pa2=</span> <span class="kw">c</span>(<span class="st">&quot;cicatrix&quot;</span>,<span class="st">&quot;normal&quot;</span>),</span>
+<span id="cb1-4"><a href="#cb1-4"></a>                  <span class="dt">Pa3=</span><span class="kw">c</span>(<span class="st">&quot;young&quot;</span>,<span class="st">&quot;adult&quot;</span>,<span class="st">&quot;old&quot;</span>))</span>
+<span id="cb1-5"><a href="#cb1-5"></a>testPart2</span></code></pre></div>
+<pre><code>## $Pa1
+## [1] &quot;sane&quot; &quot;sick&quot; &quot;dead&quot;
+## 
+## $Pa2
+## [1] &quot;cicatrix&quot; &quot;normal&quot;  
+## 
+## $Pa3
+## [1] &quot;young&quot; &quot;adult&quot; &quot;old&quot;</code></pre>
+<p>where <em>Pa</em> indicates what partition of events is introduced, say from <em>Pa1</em> on.</p>
+<p>The first step is the creation of a dataframe, in which all paths from root to leaves in the given tree are listed :</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>primaColPat &lt;-<span class="st"> </span>REvenT<span class="op">::</span><span class="kw">eve_tree</span>(testPart2)</span>
+<span id="cb3-2"><a href="#cb3-2"></a>primaColPat</span></code></pre></div>
+<pre><code>##    Part.0 Part.1   Part.2 Part.3
+## 1     CSI   sane cicatrix  young
+## 2     CSI   sick cicatrix  young
+## 3     CSI   dead cicatrix  young
+## 4     CSI   sane   normal  young
+## 5     CSI   sick   normal  young
+## 6     CSI   dead   normal  young
+## 7     CSI   sane cicatrix  adult
+## 8     CSI   sick cicatrix  adult
+## 9     CSI   dead cicatrix  adult
+## 10    CSI   sane   normal  adult
+## 11    CSI   sick   normal  adult
+## 12    CSI   dead   normal  adult
+## 13    CSI   sane cicatrix    old
+## 14    CSI   sick cicatrix    old
+## 15    CSI   dead cicatrix    old
+## 16    CSI   sane   normal    old
+## 17    CSI   sick   normal    old
+## 18    CSI   dead   normal    old</code></pre>
+<p>Note the attribute “Tipologia” of this object:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">attr</span>(primaColPat,<span class="st">&quot;Tipologia&quot;</span>)</span></code></pre></div>
+<pre><code>## [1] &quot;eve_tree&quot;</code></pre>
+<p>We can now create a matrix that contains conditional probability values:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>primoPTree&lt;-<span class="st"> </span><span class="kw">proba_tree</span>(primaColPat)</span>
+<span id="cb7-2"><a href="#cb7-2"></a>primoPTree</span></code></pre></div>
+<pre><code>## $eve_tree
+##    Part.0 Part.1   Part.2 Part.3
+## 1     CSI   sane cicatrix  young
+## 2     CSI   sick cicatrix  young
+## 3     CSI   dead cicatrix  young
+## 4     CSI   sane   normal  young
+## 5     CSI   sick   normal  young
+## 6     CSI   dead   normal  young
+## 7     CSI   sane cicatrix  adult
+## 8     CSI   sick cicatrix  adult
+## 9     CSI   dead cicatrix  adult
+## 10    CSI   sane   normal  adult
+## 11    CSI   sick   normal  adult
+## 12    CSI   dead   normal  adult
+## 13    CSI   sane cicatrix    old
+## 14    CSI   sick cicatrix    old
+## 15    CSI   dead cicatrix    old
+## 16    CSI   sane   normal    old
+## 17    CSI   sick   normal    old
+## 18    CSI   dead   normal    old
+## 
+## $proba_tree
+##       [,1] [,2] [,3] [,4]
+##  [1,]    1   NA   NA   NA
+##  [2,]    1   NA   NA   NA
+##  [3,]    1   NA   NA   NA
+##  [4,]    1   NA   NA   NA
+##  [5,]    1   NA   NA   NA
+##  [6,]    1   NA   NA   NA
+##  [7,]    1   NA   NA   NA
+##  [8,]    1   NA   NA   NA
+##  [9,]    1   NA   NA   NA
+## [10,]    1   NA   NA   NA
+## [11,]    1   NA   NA   NA
+## [12,]    1   NA   NA   NA
+## [13,]    1   NA   NA   NA
+## [14,]    1   NA   NA   NA
+## [15,]    1   NA   NA   NA
+## [16,]    1   NA   NA   NA
+## [17,]    1   NA   NA   NA
+## [18,]    1   NA   NA   NA
+## 
+## attr(,&quot;Tipologia&quot;)
+## [1] &quot;proba_tree&quot;</code></pre>
+<p>where each row-path made by events corresponds to a row in the matrix of probability values.</p>
+<p>Conditional probability values have to be provided. Two main ways are defined to enter probability values by using helper functions. In the first way, a string is defined for representing the event, besides providing a probability value:<br />
+“Pa&lt;i&gt;:&lt;event&gt;;”<br />
+where all terms between angular brackets must be substituted like shown in the example below. In “Pa&lt;i&gt;” an integer number indicating which partition is considered must be inserted, thus we have:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>test1 &lt;-<span class="st">&#39;Pa1:sick;Pa2:normal&#39;</span></span>
+<span id="cb9-2"><a href="#cb9-2"></a>tmp7 &lt;-<span class="kw">assignPro</span>(primoPTree,test1,<span class="fl">0.23</span>)</span>
+<span id="cb9-3"><a href="#cb9-3"></a>tmp7<span class="op">$</span>proba_tree</span></code></pre></div>
+<pre><code>##       Part.0 Part.1 Part.2 Part.3
+##  [1,]      1     NA     NA     NA
+##  [2,]      1     NA     NA     NA
+##  [3,]      1     NA     NA     NA
+##  [4,]      1     NA     NA     NA
+##  [5,]      1     NA   0.23     NA
+##  [6,]      1     NA     NA     NA
+##  [7,]      1     NA     NA     NA
+##  [8,]      1     NA     NA     NA
+##  [9,]      1     NA     NA     NA
+## [10,]      1     NA     NA     NA
+## [11,]      1     NA   0.23     NA
+## [12,]      1     NA     NA     NA
+## [13,]      1     NA     NA     NA
+## [14,]      1     NA     NA     NA
+## [15,]      1     NA     NA     NA
+## [16,]      1     NA     NA     NA
+## [17,]      1     NA   0.23     NA
+## [18,]      1     NA     NA     NA</code></pre>
+<p>where it clearly happens that all paths interested by this event are simultaneously assigned.</p>
+<p>A second way to perform this step is to use a more general helper function. It firstly enumerates all the required assignements and thus repetitions can be avoided:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>tmpGen &lt;-<span class="st"> </span><span class="kw">genProbLs</span>(primoPTree)</span>
+<span id="cb11-2"><a href="#cb11-2"></a>tmpGen[,<span class="op">-</span><span class="dv">1</span>]</span></code></pre></div>
+<pre><code>##                                    event par probVal
+## 1                         Pa1:sane | CSI   1      NA
+## 2                         Pa1:sick | CSI   1      NA
+## 3                         Pa1:dead | CSI   1      NA
+## 4            Pa2:cicatrix | Pa1:sane,CSI   2      NA
+## 5            Pa2:cicatrix | Pa1:sick,CSI   2      NA
+## 6            Pa2:cicatrix | Pa1:dead,CSI   2      NA
+## 7              Pa2:normal | Pa1:sane,CSI   2      NA
+## 8              Pa2:normal | Pa1:sick,CSI   2      NA
+## 9              Pa2:normal | Pa1:dead,CSI   2      NA
+## 10 Pa3:young | Pa2:cicatrix,Pa1:sane,CSI   3      NA
+## 11 Pa3:young | Pa2:cicatrix,Pa1:sick,CSI   3      NA
+## 12 Pa3:young | Pa2:cicatrix,Pa1:dead,CSI   3      NA
+## 13   Pa3:young | Pa2:normal,Pa1:sane,CSI   3      NA
+## 14   Pa3:young | Pa2:normal,Pa1:sick,CSI   3      NA
+## 15   Pa3:young | Pa2:normal,Pa1:dead,CSI   3      NA
+## 16 Pa3:adult | Pa2:cicatrix,Pa1:sane,CSI   3      NA
+## 17 Pa3:adult | Pa2:cicatrix,Pa1:sick,CSI   3      NA
+## 18 Pa3:adult | Pa2:cicatrix,Pa1:dead,CSI   3      NA
+## 19   Pa3:adult | Pa2:normal,Pa1:sane,CSI   3      NA
+## 20   Pa3:adult | Pa2:normal,Pa1:sick,CSI   3      NA
+## 21   Pa3:adult | Pa2:normal,Pa1:dead,CSI   3      NA
+## 22   Pa3:old | Pa2:cicatrix,Pa1:sane,CSI   3      NA
+## 23   Pa3:old | Pa2:cicatrix,Pa1:sick,CSI   3      NA
+## 24   Pa3:old | Pa2:cicatrix,Pa1:dead,CSI   3      NA
+## 25     Pa3:old | Pa2:normal,Pa1:sane,CSI   3      NA
+## 26     Pa3:old | Pa2:normal,Pa1:sick,CSI   3      NA
+## 27     Pa3:old | Pa2:normal,Pa1:dead,CSI   3      NA</code></pre>
+<p>It is convenient to indicate all paths and events making esplicit the partition they belong to. For example, let’s consider the following values:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a><span class="kw">cbind</span>(tmpGen<span class="op">$</span>event[<span class="dv">1</span><span class="op">:</span><span class="dv">3</span>])</span></code></pre></div>
+<pre><code>##      [,1]            
+## [1,] &quot;Pa1:sane | CSI&quot;
+## [2,] &quot;Pa1:sick | CSI&quot;
+## [3,] &quot;Pa1:dead | CSI&quot;</code></pre>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a>tmpGen<span class="op">$</span>probVal[<span class="dv">1</span><span class="op">:</span><span class="dv">3</span>] &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.1</span>, <span class="fl">0.7</span>, <span class="fl">0.2</span>)</span>
+<span id="cb15-2"><a href="#cb15-2"></a>tmpGen[<span class="dv">1</span><span class="op">:</span><span class="dv">3</span>,]</span></code></pre></div>
+<pre><code>##       path          event par probVal
+## 1 Pa1:sane Pa1:sane | CSI   1     0.1
+## 2 Pa1:sick Pa1:sick | CSI   1     0.7
+## 3 Pa1:dead Pa1:dead | CSI   1     0.2</code></pre>
+<p>It is mandatory to check that coherence of probability assignements is present, e.g. the sample space must have probability equal to <span class="math inline">\(1\)</span>:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a><span class="kw">sum</span>(tmpGen[<span class="dv">1</span><span class="op">:</span><span class="dv">3</span>,<span class="dv">4</span>])</span></code></pre></div>
+<pre><code>## [1] 1</code></pre>
+<p>Further assignementsin this example, after elicitation, might be:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a>tmpGen<span class="op">$</span>probVal[<span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">7</span>)] &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.1</span>, <span class="fl">0.9</span>)</span>
+<span id="cb19-2"><a href="#cb19-2"></a>tmpGen[<span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">7</span>),<span class="op">-</span><span class="dv">1</span>]</span></code></pre></div>
+<pre><code>##                         event par probVal
+## 4 Pa2:cicatrix | Pa1:sane,CSI   2     0.1
+## 7   Pa2:normal | Pa1:sane,CSI   2     0.9</code></pre>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a>tmpGen<span class="op">$</span>probVal[<span class="kw">c</span>(<span class="dv">5</span>,<span class="dv">8</span>)] &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.3</span>, <span class="fl">0.7</span>)</span>
+<span id="cb21-2"><a href="#cb21-2"></a>tmpGen[<span class="kw">c</span>(<span class="dv">5</span>,<span class="dv">8</span>),<span class="op">-</span><span class="dv">1</span>]</span></code></pre></div>
+<pre><code>##                         event par probVal
+## 5 Pa2:cicatrix | Pa1:sick,CSI   2     0.3
+## 8   Pa2:normal | Pa1:sick,CSI   2     0.7</code></pre>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a>tmpGen<span class="op">$</span>probVal[<span class="kw">c</span>(<span class="dv">6</span>,<span class="dv">9</span>)] &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.95</span>, <span class="fl">0.05</span>)</span>
+<span id="cb23-2"><a href="#cb23-2"></a>tmpGen[<span class="kw">c</span>(<span class="dv">6</span>,<span class="dv">9</span>),<span class="op">-</span><span class="dv">1</span>]</span></code></pre></div>
+<pre><code>##                         event par probVal
+## 6 Pa2:cicatrix | Pa1:dead,CSI   2    0.95
+## 9   Pa2:normal | Pa1:dead,CSI   2    0.05</code></pre>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1"></a>tmpGen<span class="op">$</span>probVal[<span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">16</span>,<span class="dv">22</span>)] &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">5</span>,<span class="dv">10</span>)<span class="op">/</span><span class="dv">16</span></span>
+<span id="cb25-2"><a href="#cb25-2"></a>tmpGen[<span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">16</span>,<span class="dv">22</span>),<span class="op">-</span><span class="dv">1</span>]</span></code></pre></div>
+<pre><code>##                                    event par probVal
+## 10 Pa3:young | Pa2:cicatrix,Pa1:sane,CSI   3  0.0625
+## 16 Pa3:adult | Pa2:cicatrix,Pa1:sane,CSI   3  0.3125
+## 22   Pa3:old | Pa2:cicatrix,Pa1:sane,CSI   3  0.6250</code></pre>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1"></a>tmpGen<span class="op">$</span>probVal[<span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">16</span>,<span class="dv">22</span>)<span class="op">+</span><span class="dv">1</span>] &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">5</span>,<span class="dv">5</span>,<span class="dv">5</span>)<span class="op">/</span><span class="dv">15</span></span>
+<span id="cb27-2"><a href="#cb27-2"></a>tmpGen[<span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">16</span>,<span class="dv">22</span>)<span class="op">+</span><span class="dv">1</span>,<span class="op">-</span><span class="dv">1</span>]</span></code></pre></div>
+<pre><code>##                                    event par   probVal
+## 11 Pa3:young | Pa2:cicatrix,Pa1:sick,CSI   3 0.3333333
+## 17 Pa3:adult | Pa2:cicatrix,Pa1:sick,CSI   3 0.3333333
+## 23   Pa3:old | Pa2:cicatrix,Pa1:sick,CSI   3 0.3333333</code></pre>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1"></a>tmpGen<span class="op">$</span>probVal[<span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">16</span>,<span class="dv">22</span>)<span class="op">+</span><span class="dv">2</span>] &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">25</span>,<span class="dv">5</span>,<span class="dv">15</span>)<span class="op">/</span><span class="dv">45</span></span>
+<span id="cb29-2"><a href="#cb29-2"></a>tmpGen[<span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">16</span>,<span class="dv">22</span>)<span class="op">+</span><span class="dv">2</span>,<span class="op">-</span><span class="dv">1</span>]</span></code></pre></div>
+<pre><code>##                                    event par   probVal
+## 12 Pa3:young | Pa2:cicatrix,Pa1:dead,CSI   3 0.5555556
+## 18 Pa3:adult | Pa2:cicatrix,Pa1:dead,CSI   3 0.1111111
+## 24   Pa3:old | Pa2:cicatrix,Pa1:dead,CSI   3 0.3333333</code></pre>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1"></a>tmpGen<span class="op">$</span>probVal[<span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">16</span>,<span class="dv">22</span>)<span class="op">+</span><span class="dv">3</span>] &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">50</span>,<span class="dv">5</span>,<span class="dv">25</span>)<span class="op">/</span><span class="dv">80</span></span>
+<span id="cb31-2"><a href="#cb31-2"></a>tmpGen[<span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">16</span>,<span class="dv">22</span>)<span class="op">+</span><span class="dv">3</span>,<span class="op">-</span><span class="dv">1</span>]</span></code></pre></div>
+<pre><code>##                                  event par probVal
+## 13 Pa3:young | Pa2:normal,Pa1:sane,CSI   3  0.6250
+## 19 Pa3:adult | Pa2:normal,Pa1:sane,CSI   3  0.0625
+## 25   Pa3:old | Pa2:normal,Pa1:sane,CSI   3  0.3125</code></pre>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1"></a>tmpGen<span class="op">$</span>probVal[<span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">16</span>,<span class="dv">22</span>)<span class="op">+</span><span class="dv">4</span>] &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">25</span>,<span class="dv">5</span>,<span class="dv">25</span>)<span class="op">/</span><span class="dv">55</span></span>
+<span id="cb33-2"><a href="#cb33-2"></a>tmpGen[<span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">16</span>,<span class="dv">22</span>)<span class="op">+</span><span class="dv">4</span>,<span class="op">-</span><span class="dv">1</span>]</span></code></pre></div>
+<pre><code>##                                  event par    probVal
+## 14 Pa3:young | Pa2:normal,Pa1:sick,CSI   3 0.45454545
+## 20 Pa3:adult | Pa2:normal,Pa1:sick,CSI   3 0.09090909
+## 26   Pa3:old | Pa2:normal,Pa1:sick,CSI   3 0.45454545</code></pre>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1"></a>tmpGen<span class="op">$</span>probVal[<span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">16</span>,<span class="dv">22</span>)<span class="op">+</span><span class="dv">5</span>] &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">5</span>,<span class="dv">10</span>)<span class="op">/</span><span class="dv">16</span></span>
+<span id="cb35-2"><a href="#cb35-2"></a>tmpGen[<span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">16</span>,<span class="dv">22</span>)<span class="op">+</span><span class="dv">5</span>,<span class="op">-</span><span class="dv">1</span>]</span></code></pre></div>
+<pre><code>##                                  event par probVal
+## 15 Pa3:young | Pa2:normal,Pa1:dead,CSI   3  0.0625
+## 21 Pa3:adult | Pa2:normal,Pa1:dead,CSI   3  0.3125
+## 27   Pa3:old | Pa2:normal,Pa1:dead,CSI   3  0.6250</code></pre>
+<p>The overall set of values is shown below:</p>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1"></a>tmpGen[,<span class="op">-</span><span class="dv">1</span>]</span></code></pre></div>
+<pre><code>##                                    event par    probVal
+## 1                         Pa1:sane | CSI   1 0.10000000
+## 2                         Pa1:sick | CSI   1 0.70000000
+## 3                         Pa1:dead | CSI   1 0.20000000
+## 4            Pa2:cicatrix | Pa1:sane,CSI   2 0.10000000
+## 5            Pa2:cicatrix | Pa1:sick,CSI   2 0.30000000
+## 6            Pa2:cicatrix | Pa1:dead,CSI   2 0.95000000
+## 7              Pa2:normal | Pa1:sane,CSI   2 0.90000000
+## 8              Pa2:normal | Pa1:sick,CSI   2 0.70000000
+## 9              Pa2:normal | Pa1:dead,CSI   2 0.05000000
+## 10 Pa3:young | Pa2:cicatrix,Pa1:sane,CSI   3 0.06250000
+## 11 Pa3:young | Pa2:cicatrix,Pa1:sick,CSI   3 0.33333333
+## 12 Pa3:young | Pa2:cicatrix,Pa1:dead,CSI   3 0.55555556
+## 13   Pa3:young | Pa2:normal,Pa1:sane,CSI   3 0.62500000
+## 14   Pa3:young | Pa2:normal,Pa1:sick,CSI   3 0.45454545
+## 15   Pa3:young | Pa2:normal,Pa1:dead,CSI   3 0.06250000
+## 16 Pa3:adult | Pa2:cicatrix,Pa1:sane,CSI   3 0.31250000
+## 17 Pa3:adult | Pa2:cicatrix,Pa1:sick,CSI   3 0.33333333
+## 18 Pa3:adult | Pa2:cicatrix,Pa1:dead,CSI   3 0.11111111
+## 19   Pa3:adult | Pa2:normal,Pa1:sane,CSI   3 0.06250000
+## 20   Pa3:adult | Pa2:normal,Pa1:sick,CSI   3 0.09090909
+## 21   Pa3:adult | Pa2:normal,Pa1:dead,CSI   3 0.31250000
+## 22   Pa3:old | Pa2:cicatrix,Pa1:sane,CSI   3 0.62500000
+## 23   Pa3:old | Pa2:cicatrix,Pa1:sick,CSI   3 0.33333333
+## 24   Pa3:old | Pa2:cicatrix,Pa1:dead,CSI   3 0.33333333
+## 25     Pa3:old | Pa2:normal,Pa1:sane,CSI   3 0.31250000
+## 26     Pa3:old | Pa2:normal,Pa1:sick,CSI   3 0.45454545
+## 27     Pa3:old | Pa2:normal,Pa1:dead,CSI   3 0.62500000</code></pre>
+<p>A helper function is available to fetch such values into the original <em>eve_tree</em> object:</p>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1"></a>primoPTree &lt;-<span class="st"> </span><span class="kw">fetchProb</span>(primoPTree,tmpGen)</span>
+<span id="cb39-2"><a href="#cb39-2"></a>primoPTree<span class="op">$</span>proba_tree</span></code></pre></div>
+<pre><code>##       Part.0 Part.1 Part.2     Part.3
+##  [1,]      1    0.1   0.10 0.06250000
+##  [2,]      1    0.7   0.30 0.33333333
+##  [3,]      1    0.2   0.95 0.55555556
+##  [4,]      1    0.1   0.90 0.62500000
+##  [5,]      1    0.7   0.70 0.45454545
+##  [6,]      1    0.2   0.05 0.06250000
+##  [7,]      1    0.1   0.10 0.31250000
+##  [8,]      1    0.7   0.30 0.33333333
+##  [9,]      1    0.2   0.95 0.11111111
+## [10,]      1    0.1   0.90 0.06250000
+## [11,]      1    0.7   0.70 0.09090909
+## [12,]      1    0.2   0.05 0.31250000
+## [13,]      1    0.1   0.10 0.62500000
+## [14,]      1    0.7   0.30 0.33333333
+## [15,]      1    0.2   0.95 0.33333333
+## [16,]      1    0.1   0.90 0.31250000
+## [17,]      1    0.7   0.70 0.45454545
+## [18,]      1    0.2   0.05 0.62500000</code></pre>
+</div>
+<div id="marginalization-and-conditioning" class="section level1">
+<h1>Marginalization and conditioning</h1>
+<p>Firstly, probability values of the conjunction of events along all root-to-leave paths are calculated:</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1"></a>tavolaCongiunta &lt;-<span class="st"> </span><span class="kw">congiungi</span>(primoPTree)</span>
+<span id="cb41-2"><a href="#cb41-2"></a>tavolaCongiunta</span></code></pre></div>
+<pre><code>##    Part.0 Part.1   Part.2 Part.3   jointPro
+## 1     CSI   sane cicatrix  young 0.00062500
+## 2     CSI   sick cicatrix  young 0.07000000
+## 3     CSI   dead cicatrix  young 0.10555556
+## 4     CSI   sane   normal  young 0.05625000
+## 5     CSI   sick   normal  young 0.22272727
+## 6     CSI   dead   normal  young 0.00062500
+## 7     CSI   sane cicatrix  adult 0.00312500
+## 8     CSI   sick cicatrix  adult 0.07000000
+## 9     CSI   dead cicatrix  adult 0.02111111
+## 10    CSI   sane   normal  adult 0.00562500
+## 11    CSI   sick   normal  adult 0.04454545
+## 12    CSI   dead   normal  adult 0.00312500
+## 13    CSI   sane cicatrix    old 0.00625000
+## 14    CSI   sick cicatrix    old 0.07000000
+## 15    CSI   dead cicatrix    old 0.06333333
+## 16    CSI   sane   normal    old 0.02812500
+## 17    CSI   sick   normal    old 0.22272727
+## 18    CSI   dead   normal    old 0.00625000</code></pre>
+<p>thus we can check the value implied for the sure event:</p>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1"></a><span class="kw">sum</span>(tavolaCongiunta<span class="op">$</span>jointPro)</span></code></pre></div>
+<pre><code>## [1] 1</code></pre>
+<p>as expected.</p>
+<p>Now the marginalization is possible with respect to some events in their own partition, for example:</p>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1"></a>mymargin1 &lt;-<span class="st"> </span><span class="kw">marginalizza</span>(tavolaCongiunta,<span class="st">&quot;Pa2:cicatrix;Pa3:adult&quot;</span>)</span>
+<span id="cb45-2"><a href="#cb45-2"></a>mymargin1</span></code></pre></div>
+<pre><code>## $sottoTavola
+##   Part.0 Part.1   Part.2 Part.3   jointPro
+## 7    CSI   sane cicatrix  adult 0.00312500
+## 8    CSI   sick cicatrix  adult 0.07000000
+## 9    CSI   dead cicatrix  adult 0.02111111
+## 
+## $probaMargin
+## [1] 0.09423611
+## 
+## $tavolaMarginale
+##   Part.0  Part.1   Part.2 Part.3 probaMargin
+## 7    CSI &lt;OMEGA&gt; cicatrix  adult  0.09423611</code></pre>
+<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1"></a><span class="kw">marginalizza</span>(tavolaCongiunta,<span class="st">&quot;Pa2:cicatrix&quot;</span>)</span></code></pre></div>
+<pre><code>## $sottoTavola
+##    Part.0 Part.1   Part.2 Part.3   jointPro
+## 1     CSI   sane cicatrix  young 0.00062500
+## 2     CSI   sick cicatrix  young 0.07000000
+## 3     CSI   dead cicatrix  young 0.10555556
+## 7     CSI   sane cicatrix  adult 0.00312500
+## 8     CSI   sick cicatrix  adult 0.07000000
+## 9     CSI   dead cicatrix  adult 0.02111111
+## 13    CSI   sane cicatrix    old 0.00625000
+## 14    CSI   sick cicatrix    old 0.07000000
+## 15    CSI   dead cicatrix    old 0.06333333
+## 
+## $probaMargin
+## [1] 0.41
+## 
+## $tavolaMarginale
+##   Part.0  Part.1   Part.2  Part.3 probaMargin
+## 1    CSI &lt;OMEGA&gt; cicatrix &lt;OMEGA&gt;        0.41</code></pre>
+<div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1"></a><span class="kw">marginalizza</span>(tavolaCongiunta,<span class="st">&quot;Pa1:dead;Pa3:old&quot;</span>)</span></code></pre></div>
+<pre><code>## $sottoTavola
+##    Part.0 Part.1   Part.2 Part.3   jointPro
+## 15    CSI   dead cicatrix    old 0.06333333
+## 18    CSI   dead   normal    old 0.00625000
+## 
+## $probaMargin
+## [1] 0.06958333
+## 
+## $tavolaMarginale
+##    Part.0 Part.1  Part.2 Part.3 probaMargin
+## 15    CSI   dead &lt;OMEGA&gt;    old  0.06958333</code></pre>
+<p>Last, it is possible to calculate conditional probability values, i.e. with Bayes’ rule. <!--  
+
+```r
+estraSottotavola(tavolaCongiunta,"Pa2:cicatrix;Pa3:adult")
+```
+
+```
+##   Part.0 Part.1   Part.2 Part.3   jointPro
+## 7    CSI   sane cicatrix  adult 0.00312500
+## 8    CSI   sick cicatrix  adult 0.07000000
+## 9    CSI   dead cicatrix  adult 0.02111111
+```
+thus after conditioning:
+
+```r
+myCondizio <-estraSottotavola(tavolaCongiunta,
+                              "Pa2:cicatrix;Pa3:adult")
+myCondizio$jointPro <- myCondizio$jointPro / mymargin1$probaMargin
+cbind(
+      myCondizio[,1:4],
+      condizionata= myCondizio$jointPro/ mymargin1$probaMargin
+)
+```
+
+```
+##   Part.0 Part.1   Part.2 Part.3 condizionata
+## 7    CSI   sane cicatrix  adult    0.3518968
+## 8    CSI   sick cicatrix  adult    7.8824882
+## 9    CSI   dead cicatrix  adult    2.3772583
+```
+
+
+--></p>
+<p>It is convenient to use a function that performs the above calculations in one step (invocation), starting from a probabilistic definition based on strings. Note that the estractor does not depend on the order of conditioning events:</p>
+<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1"></a><span class="kw">estraSottotavola</span>(tavolaCongiunta,<span class="st">&quot;Pa3:adult;Pa1:sane;Pa2:normal&quot;</span>)</span></code></pre></div>
+<pre><code>##    Part.0 Part.1 Part.2 Part.3 jointPro
+## 10    CSI   sane normal  adult 0.005625</code></pre>
+<div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1"></a><span class="kw">estraSottotavola</span>(tavolaCongiunta,<span class="st">&quot;Pa2:normal;Pa3:adult;Pa1:sane&quot;</span>)</span></code></pre></div>
+<pre><code>##    Part.0 Part.1 Part.2 Part.3 jointPro
+## 10    CSI   sane normal  adult 0.005625</code></pre>
+<p>A function called <em>condiziona</em> makes all intermediate calculations and it only shows results:</p>
+<div class="sourceCode" id="cb55"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1"></a>tetCondiz &lt;-<span class="st"> </span><span class="kw">condiziona</span>(tavolaCongiunta,</span>
+<span id="cb55-2"><a href="#cb55-2"></a>   <span class="st">&quot;Pa1:sane  | Pa3:old; Pa2:cicatrix&quot;</span>)</span>
+<span id="cb55-3"><a href="#cb55-3"></a>tetCondiz</span></code></pre></div>
+<pre><code>##    Part.0 Part.1   Part.2 Part.3    condPro
+## 13    CSI   sane cicatrix    old 0.04477612</code></pre>
+<p>It could be the case that all the distribution is needed, thus in such a case:</p>
+<div class="sourceCode" id="cb57"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1"></a><span class="kw">condiziona</span>(tavolaCongiunta, <span class="st">&quot;   | Pa3:old; Pa2:cicatrix&quot;</span>)</span></code></pre></div>
+<pre><code>##    Part.0 Part.1   Part.2 Part.3    condPro
+## 13    CSI   sane cicatrix    old 0.04477612
+## 14    CSI   sick cicatrix    old 0.50149254
+## 15    CSI   dead cicatrix    old 0.45373134</code></pre>
+<p>that adds to one.</p>
+<p>Even simpler conditioning does work, and we can ckeck that they add to one:</p>
+<div class="sourceCode" id="cb59"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1"></a><span class="kw">condiziona</span>(tavolaCongiunta, <span class="st">&quot;   | Pa2:cicatrix&quot;</span>)</span></code></pre></div>
+<pre><code>##    Part.0 Part.1   Part.2 Part.3     condPro
+## 1     CSI   sane cicatrix  young 0.001524390
+## 2     CSI   sick cicatrix  young 0.170731707
+## 3     CSI   dead cicatrix  young 0.257452575
+## 7     CSI   sane cicatrix  adult 0.007621951
+## 8     CSI   sick cicatrix  adult 0.170731707
+## 9     CSI   dead cicatrix  adult 0.051490515
+## 13    CSI   sane cicatrix    old 0.015243902
+## 14    CSI   sick cicatrix    old 0.170731707
+## 15    CSI   dead cicatrix    old 0.154471545</code></pre>
+<div class="sourceCode" id="cb61"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1"></a><span class="kw">sum</span>(<span class="kw">condiziona</span>(tavolaCongiunta, <span class="st">&quot;   | Pa2:cicatrix&quot;</span>)<span class="op">$</span>condPro)</span></code></pre></div>
+<pre><code>## [1] 1</code></pre>
+<p>The marginal distribution after conditioning is:</p>
+<div class="sourceCode" id="cb63"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1"></a><span class="kw">condiziona</span>(tavolaCongiunta, <span class="st">&quot;    | Pa3:adult&quot;</span>)</span></code></pre></div>
+<pre><code>##    Part.0 Part.1   Part.2 Part.3    condPro
+## 7     CSI   sane cicatrix  adult 0.02118191
+## 8     CSI   sick cicatrix  adult 0.47447473
+## 9     CSI   dead cicatrix  adult 0.14309555
+## 10    CSI   sane   normal  adult 0.03812743
+## 11    CSI   sick   normal  adult 0.30193847
+## 12    CSI   dead   normal  adult 0.02118191</code></pre>
+<div class="sourceCode" id="cb65"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1"></a><span class="kw">condiziona</span>(tavolaCongiunta, <span class="st">&quot; Pa2:normal   | Pa3:adult&quot;</span>)</span></code></pre></div>
+<pre><code>##    Part.0 Part.1 Part.2 Part.3    condPro
+## 10    CSI   sane normal  adult 0.03812743
+## 11    CSI   sick normal  adult 0.30193847
+## 12    CSI   dead normal  adult 0.02118191</code></pre>
+<p>In case the events of the third partition are not observed, we have:</p>
+<div class="sourceCode" id="cb67"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1"></a>test7 &lt;-<span class="kw">condiziona</span>(tavolaCongiunta, <span class="st">&quot; Pa1:sane   | Pa2:normal&quot;</span>)</span>
+<span id="cb67-2"><a href="#cb67-2"></a>test7</span></code></pre></div>
+<pre><code>##    Part.0 Part.1 Part.2 Part.3     condPro
+## 4     CSI   sane normal  young 0.095338983
+## 10    CSI   sane normal  adult 0.009533898
+## 16    CSI   sane normal    old 0.047669492</code></pre>
+<p>but here a further marginalization is needed:</p>
+<div class="sourceCode" id="cb69"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1"></a><span class="kw">marginalizza</span>(test7,<span class="st">&quot;Pa1:sane;Pa2:normal&quot;</span>)<span class="op">$</span>tavolaMarginale</span></code></pre></div>
+<pre><code>##   Part.0 Part.1 Part.2  Part.3 probaMargin
+## 4    CSI   sane normal &lt;OMEGA&gt;   0.1525424</code></pre>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,255 @@
+---
+title: "REvenT workflow (ENG)"
+author: "Federico M. Stefanini"
+date: " August 2020 - rel 1.5.7"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{REvenT workflow (ENG)}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+
+# Introduction
+
+This document elaborates an example on how to work with
+package *REvenT*, a suite of functions to make probability calculus using
+trees of events.
+
+**NOTE**: this package has not been released on CRAN.
+It might contain functions that will not be released in the final version of this package.
+Extensive testing is in progress.
+
+
+# A Simple case study
+
+Below,  three partitions of a sample space are considered:
+
+```{r}
+library(REvenT)
+testPart2 <- list(Pa1= c("sane","sick","dead"),
+                  Pa2= c("cicatrix","normal"),
+                  Pa3=c("young","adult","old"))
+testPart2
+```
+where *Pa* indicates what  partition of events is introduced,
+say from *Pa1* on.
+
+The first step is the creation of a dataframe, in which all paths from root
+to leaves in the given tree are listed :
+```{r}
+primaColPat <- REvenT::eve_tree(testPart2)
+primaColPat
+```
+
+Note the attribute "Tipologia" of this object:
+```{r}
+attr(primaColPat,"Tipologia")
+```
+
+
+We can now create a matrix that contains conditional probability values:
+```{r}
+primoPTree<- proba_tree(primaColPat)
+primoPTree
+```
+where each row-path made by events corresponds
+to a row in the matrix of probability values.
+
+
+Conditional probability values have to be provided. 
+Two main ways are defined to enter probability values by
+using  helper functions.
+In the first way,   a string is defined 
+for representing the event, besides providing  a probability value:   
+"Pa\<i\>:\<event\>;"    
+where all terms between angular brackets 
+must be substituted like shown in the example below.
+In "Pa\<i\>" an integer number indicating which partition is
+considered must be inserted, thus we have:
+```{r}
+test1 <-'Pa1:sick;Pa2:normal'
+tmp7 <-assignPro(primoPTree,test1,0.23)
+tmp7$proba_tree
+```
+where it clearly happens that all paths interested by this event are
+simultaneously assigned.
+
+
+
+A second  way to perform this step  is to use a more general helper function.
+It  firstly enumerates all the required assignements and thus
+repetitions can be avoided:
+```{r}
+tmpGen <- genProbLs(primoPTree)
+tmpGen[,-1]
+```
+
+It is convenient to indicate all paths and events making 
+esplicit the partition they belong to.
+For example, let's consider the following values:
+```{r}
+cbind(tmpGen$event[1:3])
+tmpGen$probVal[1:3] <- c(0.1, 0.7, 0.2)
+tmpGen[1:3,]
+```
+
+
+It is mandatory to check that coherence of probability assignements 
+is present, e.g. the sample space must have probability equal to $1$:
+```{r}
+sum(tmpGen[1:3,4])
+```
+
+Further assignementsin this example, after elicitation, might be:
+```{r}
+tmpGen$probVal[c(4,7)] <- c(0.1, 0.9)
+tmpGen[c(4,7),-1]
+
+tmpGen$probVal[c(5,8)] <- c(0.3, 0.7)
+tmpGen[c(5,8),-1]
+
+tmpGen$probVal[c(6,9)] <- c(0.95, 0.05)
+tmpGen[c(6,9),-1]
+
+tmpGen$probVal[c(10,16,22)] <- c(1,5,10)/16
+tmpGen[c(10,16,22),-1]
+
+tmpGen$probVal[c(10,16,22)+1] <- c(5,5,5)/15
+tmpGen[c(10,16,22)+1,-1]
+
+tmpGen$probVal[c(10,16,22)+2] <- c(25,5,15)/45
+tmpGen[c(10,16,22)+2,-1]
+
+tmpGen$probVal[c(10,16,22)+3] <- c(50,5,25)/80
+tmpGen[c(10,16,22)+3,-1]
+
+tmpGen$probVal[c(10,16,22)+4] <- c(25,5,25)/55
+tmpGen[c(10,16,22)+4,-1]
+
+tmpGen$probVal[c(10,16,22)+5] <- c(1,5,10)/16
+tmpGen[c(10,16,22)+5,-1]
+```
+
+The overall set of values is shown below:
+```{r}
+tmpGen[,-1]
+```
+
+
+
+A helper function is available to fetch   such values
+into the original *eve\_tree* object:
+```{r}
+primoPTree <- fetchProb(primoPTree,tmpGen)
+primoPTree$proba_tree
+```
+
+
+
+
+
+# Marginalization and conditioning
+
+
+Firstly, probability values of the conjunction of events along all root-to-leave
+paths are calculated:
+```{r}
+tavolaCongiunta <- congiungi(primoPTree)
+tavolaCongiunta
+```
+thus we can check the value implied 
+for the sure event:
+```{r}
+sum(tavolaCongiunta$jointPro)
+```
+as expected.
+ 
+
+Now the marginalization is possible
+with respect to some events in their own partition, for example:
+```{r}
+mymargin1 <- marginalizza(tavolaCongiunta,"Pa2:cicatrix;Pa3:adult")
+mymargin1
+```
+
+```{r}
+marginalizza(tavolaCongiunta,"Pa2:cicatrix")
+marginalizza(tavolaCongiunta,"Pa1:dead;Pa3:old")
+```
+
+
+Last, it is possible to calculate   conditional probability
+values, i.e. with Bayes' rule.
+<!--  
+```{r}
+estraSottotavola(tavolaCongiunta,"Pa2:cicatrix;Pa3:adult")
+```
+thus after conditioning:
+```{r}
+myCondizio <-estraSottotavola(tavolaCongiunta,
+                              "Pa2:cicatrix;Pa3:adult")
+myCondizio$jointPro <- myCondizio$jointPro / mymargin1$probaMargin
+cbind(
+      myCondizio[,1:4],
+      condizionata= myCondizio$jointPro/ mymargin1$probaMargin
+)
+```
+
+
+-->
+
+It is convenient to use a function that performs the above calculations
+in one step (invocation), starting from a probabilistic definition
+based on strings.
+Note that the estractor does not depend on the order of conditioning events:
+```{r}
+estraSottotavola(tavolaCongiunta,"Pa3:adult;Pa1:sane;Pa2:normal")
+estraSottotavola(tavolaCongiunta,"Pa2:normal;Pa3:adult;Pa1:sane")
+```
+
+
+A function  called *condiziona* makes all intermediate calculations and it only shows  results:
+```{r}
+tetCondiz <- condiziona(tavolaCongiunta,
+   "Pa1:sane  | Pa3:old; Pa2:cicatrix")
+tetCondiz
+```
+
+It could be the case that all the distribution is needed, thus in such a case:
+```{r}
+condiziona(tavolaCongiunta, "   | Pa3:old; Pa2:cicatrix")
+```
+that adds to one.
+
+
+
+Even simpler conditioning does work, and we can ckeck that they add to one:
+```{r}
+condiziona(tavolaCongiunta, "   | Pa2:cicatrix")
+sum(condiziona(tavolaCongiunta, "   | Pa2:cicatrix")$condPro)
+```
+
+
+The marginal distribution after conditioning is:
+```{r}
+condiziona(tavolaCongiunta, "    | Pa3:adult")
+condiziona(tavolaCongiunta, " Pa2:normal   | Pa3:adult")
+```
+
+In case the events of the third partition are not observed, we have:
+```{r}
+test7 <-condiziona(tavolaCongiunta, " Pa1:sane   | Pa2:normal")
+test7
+```
+but here a further marginalization is needed:
+```{r}
+marginalizza(test7,"Pa1:sane;Pa2:normal")$tavolaMarginale
+```
+
+
+
+
+

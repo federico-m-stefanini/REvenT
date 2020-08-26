@@ -1,0 +1,18 @@
+Package: REvenT
+Type: Package
+Title: Probability calculus on Event Trees
+Version: 1.5.7
+Encoding: UTF-8
+Author: Federico M. Stefanini
+Maintainer: <federico.stefanini@unifi.it>
+Description: Joint, marginal and conditional probability values from trees.
+License: GPL-2
+LazyData: TRUE
+RoxygenNote: 7.1.1
+Imports:
+    igraph,
+    testthat
+Suggests:
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
