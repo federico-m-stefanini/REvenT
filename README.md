@@ -19,3 +19,7 @@ install_github(repo="federico-m-stefanini/REvenT",
                
 help(package="REvenT") # to see vignettes in italian and english               
 ```
+
+
+License: GNU General Public License, version 2.
+
